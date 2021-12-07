@@ -1,36 +1,28 @@
-version: '3'
-
+version: '3.8'
 services:
-  postgres:
-    container_name: postgres_container
-    image: postgres
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-1234}
-      PGDATA: /mnt/c/Users/snn/Documents/projects/VPSControl/data
+  appseed-app:
+    container_name: appseed_app
+    restart: always
+    env_file: .env
+    build: .
+    networks:
+      - db_network
+      - web_network
+  nginx:
+    container_name: nginx
+    restart: always
+    image: "nginx:latest"
+    ports:
+      - "85:85"
     volumes:
-       - pgdata:/mnt/c/Users/snn/Documents/projects/VPSControl/data
-    ports:
-      - "${POSTGRESQL_EXT_PORT:-5432}:5432"
+      - ./nginx:/etc/nginx/conf.d
     networks:
-      - postgres
-    restart: unless-stopped
-
-  pgadmin:
-    container_name: pgadmin4_container
-    image: dpage/pgadmin4
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_USER:-admin@admin.com}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-root}
-    ports:
-      - "${PGADMIN_EXT_PORT:-5050}:80"
-    networks:
-      - postgres
-    restart: unless-stopped
-
+      - web_network
+    depends_on: 
+      - appseed-app
 networks:
-  postgres:
+  db_network:
     driver: bridge
-
-volumes:
-    pgdata:
+  web_network:
+    driver: bridge
+ 
